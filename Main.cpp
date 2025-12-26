@@ -1,3 +1,7 @@
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -191,7 +195,20 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
+		// Создаем трансформацию
+		glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f); // определяем vec с помощью встроенного класса GLM
+		glm::mat4 trans = glm::mat4(1.0f); // определяем mat4 и явно инициализиурем его единичной матрицей
+		// присваивая диагоналям матрицы значение 1.0 (если мы не инициализиурем его единичной матрицей, матрица будет нулевой)
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f)); // поворачиваем матрицу с помощью glfwGetTime
+		trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5)); // масштабируем контейнер на 0.5
+
 		ourShader.use();
+		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");// запрашиваем расположение однородной переменной и 
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans)); // отправляем данные в шейдер с помощью glUniform c Matrix4fv в качестве постфикса
+		// 1 аргумент тут это расположение униформы, 
+		// 2 аргумент - кол-во матриц
+		// 3 аргумент - спрашивает хотим ли мы транспонировать нашу матрицу (то есть поменять местами столбцы и строки)
+		// 4 аргумент - фактические данные матрицы
 		glBindVertexArray(VAO); // как только мы захотим нарисовать объект, мы просто привязываем VAO  к предпочтительным настройкам перед рисованием объекта
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // рисуем 2 треугольника
 		// 1 аргумент - тип примитива
