@@ -1,0 +1,10 @@
+# Visual Studio temporary files
+*.ipch
+*.obj
+*.exe
+*.pdb
+*.user
+*.suo
+*.opensdf
+*.tlog
+.vs/
