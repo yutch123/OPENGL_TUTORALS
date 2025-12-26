@@ -1,3 +1,8 @@
+#define GLM_ENABLE_EXPERIMENTAL
+
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -14,6 +19,69 @@ void processInput(GLFWwindow *window);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+
+bool dragging = false;
+
+glm::vec3 lastPos;
+glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+
+// Создаем трансформацию
+glm::vec3 screenToArcball(float x, float y)
+{
+	// нормализация в диапозон [-1; 1]
+	float nx = (2.0f * x - SCR_WIDTH) / SCR_WIDTH;
+	float ny = (SCR_HEIGHT - 2.0f * y) / SCR_HEIGHT;
+
+	float length2 = nx * nx + ny * ny;
+
+	if (length2 <= 1.0f)
+		return glm::vec3(nx, ny, sqrt(1.0f - length2)); // на сфере
+	else
+		return glm::normalize(glm::vec3(nx, ny, 0.0f)); // вне сферы
+}
+
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT)
+	{
+		if (action == GLFW_PRESS)
+		{
+			dragging = true;
+
+			double x, y;
+			glfwGetCursorPos(window, &x, &y);
+			lastPos = screenToArcball((float)x, float(y));
+		}
+		else if(action == GLFW_RELEASE)
+		{
+			dragging = false;
+		}
+	}
+}
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (!dragging)
+		return;
+
+	glm::vec3 currPos = screenToArcball((float)xpos, (float)ypos);
+
+	float dot = glm::clamp(glm::dot(lastPos, currPos), -1.0f, 1.0f);
+	float angle = acos(dot);
+
+	glm::vec3 axis = glm::cross(lastPos, currPos);
+
+	if (glm::length(axis) > 0.0001f)
+	{
+		axis = glm::normalize(axis);
+		glm::quat delta = glm::angleAxis(angle * 2.0f, axis);
+		rotation = delta * rotation;
+	}
+
+	lastPos = currPos;
+}
+
 
 int main()
 {
@@ -35,6 +103,8 @@ int main()
 	}
 
 	glfwMakeContextCurrent(window); // все следующие команды, которые будут вызваны относятся к этому окну.
+	glfwSetCursorPosCallback(window, cursor_position_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// получаем и сохраняем адреса функций OpenGL в памяти.
@@ -195,20 +265,17 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-		// Создаем трансформацию
-		glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f); // определяем vec с помощью встроенного класса GLM
-		glm::mat4 trans = glm::mat4(1.0f); // определяем mat4 и явно инициализиурем его единичной матрицей
-		// присваивая диагоналям матрицы значение 1.0 (если мы не инициализиурем его единичной матрицей, матрица будет нулевой)
-		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f)); // поворачиваем матрицу с помощью glfwGetTime
-		trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5)); // масштабируем контейнер на 0.5
+		// создание матрицы трансформации с Arcball вращением
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans *= glm::toMat4(rotation); // поворот
+		trans = glm::scale(trans, glm::vec3(0.5f)); // масштабирование
 
+
+		// передача в шейдер
 		ourShader.use();
-		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");// запрашиваем расположение однородной переменной и 
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans)); // отправляем данные в шейдер с помощью glUniform c Matrix4fv в качестве постфикса
-		// 1 аргумент тут это расположение униформы, 
-		// 2 аргумент - кол-во матриц
-		// 3 аргумент - спрашивает хотим ли мы транспонировать нашу матрицу (то есть поменять местами столбцы и строки)
-		// 4 аргумент - фактические данные матрицы
+		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
 		glBindVertexArray(VAO); // как только мы захотим нарисовать объект, мы просто привязываем VAO  к предпочтительным настройкам перед рисованием объекта
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // рисуем 2 треугольника
 		// 1 аргумент - тип примитива
