@@ -25,6 +25,13 @@ bool dragging = false;
 glm::vec3 lastPos;
 glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
+// единый источник правды для зума
+float fov = 45.0f; // поле зрения
+const GLfloat minFov = 15.0f;
+const GLfloat maxFov = 90.0f;
+
+const GLfloat zoomSpeed = 40.0f; // градусов в секунду
+
 // Arcball-rotation
 glm::vec3 screenToArcball(float x, float y) // преобразуем 2D-позицию курсора мыши (в пикселях) 
 // → в 3D-вектор на поверхности виртуальной сферы
@@ -310,7 +317,11 @@ int main()
 		);
 
 		// PROJECTION - перспектива
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (GLfloat)SCR_WIDTH / (GLfloat)SCR_HEIGHT, 1.0f, 100.0f);
+		glm::mat4 projection = glm::perspective(
+			glm::radians(fov), (GLfloat)SCR_WIDTH / (GLfloat)SCR_HEIGHT,
+			0.1f,
+			100.0f
+		);
 
 		// передача в шейдер
 		ourShader.use();
@@ -337,8 +348,34 @@ int main()
 
 void processInput(GLFWwindow *window)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) // проверяем нажал ли пользователь Esc
-		glfwSetWindowShouldClose(window, true); // если нажал, то мы закрываем GLFW
+	static GLfloat lastTime = glfwGetTime();
+	GLfloat currentTime = glfwGetTime();
+	GLfloat deltaTime = currentTime - lastTime;
+	lastTime = currentTime;
+
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+
+	// бооквая кнопка "назад" → zoom in
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_4) == GLFW_PRESS)
+		fov -= zoomSpeed * deltaTime;
+
+	// боковая кнопка "вперед" → zoom out
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_5) == GLFW_PRESS)
+		fov += zoomSpeed * deltaTime;
+
+	// Ctrl + / Ctrl -
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
+		glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS)
+	{
+		if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
+			fov -= zoomSpeed * deltaTime;
+
+		if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
+			fov += zoomSpeed * deltaTime;
+	}
+
+	fov = glm::clamp(fov, minFov, maxFov);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int SCR_WIDTH, int SCR_HEIGHT) // функция для изменения размера окна экрана 
