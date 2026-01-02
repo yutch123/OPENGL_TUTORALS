@@ -12,6 +12,11 @@
 
 #include <iostream>
 
+#include "imgui.h"                   // основной интерфейс ImGui
+#include "imgui_impl_glfw.h"         // backend для GLFW
+#include "imgui_impl_opengl3.h"     // backend для OpenGL3
+#include "imconfig.h"
+
 #include "Shader.h"
 #include "stb_image.h"
 #include "Arcball.h"
@@ -31,10 +36,16 @@ int gHeight = SCR_HEIGHT;
 float fov = 45.0f; // поле зрения
 const GLfloat minFov = 15.0f;
 const GLfloat maxFov = 90.0f;
-
-const GLfloat zoomSpeed = 40.0f; // градусов в секунду
+const GLfloat zoomSpeed = 10.0f; // градусов в секунду
 
 Arcball arcball(SCR_WIDTH, SCR_HEIGHT);
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	// yoffset > 0 означает прокрутку вверх (zoom in), yoffset < 0 — вниз (zoom out)
+	fov -= (float)yoffset * zoomSpeed * 0.1f; // 0.1f — чувствительность прокрутки
+	fov = glm::clamp(fov, minFov, maxFov);
+}
 
 int main()
 {
@@ -59,6 +70,7 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetCursorPosCallback(window, cursor_position_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 	// получаем и сохраняем адреса функций OpenGL в памяти.
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -66,6 +78,17 @@ int main()
 		std::cout << "Не удалось инициализировать GLAD" << std::endl;
 		return -1;
 	}
+
+	// Инициализация окна
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); 
+	(void)io;
+	ImGui::StyleColorsClassic();
+
+	// Инициализация бэкендов
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -271,6 +294,19 @@ int main()
 		// 2 аргумент - кол-во элементов
 		// 3 аргумент - тип индексов, который имеет вид GL_UNSIGNED_INT
 
+		// Рендер ImGui
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		ImGui::Begin("GUI");
+		ImGui::Text("Hello GUI!");
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 		glfwSwapBuffers(window); // меняет местами цветовой буфер
 		glfwPollEvents(); // проверка события, например ввод с клавиатуры
 	}
@@ -333,4 +369,5 @@ void cursor_position_callback(GLFWwindow*, double x, double y)
 {
 	arcball.onCursorMove(x, y);
 }
+
 
