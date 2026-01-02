@@ -300,8 +300,31 @@ int main()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		ImGui::Begin("GUI");
-		ImGui::Text("Hello GUI!");
+		static bool primitivesCollapsed = false;
+
+		ImGuiIO& io = ImGui::GetIO();
+
+		ImGui::SetNextWindowPos(ImVec2(10, 10)); // верхний левый угол
+
+		ImGui::Begin("Primitives", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
+		{
+			if (!ImGui::IsWindowCollapsed())
+			{
+				// Получаем доступное пространство внутри окна
+				ImVec2 buttonSize(120, 40); // // ширина и высота кнопки
+				// кнопки
+				if (ImGui::Button("Cube", buttonSize))
+				{ /* логика */
+				}
+				if (ImGui::Button("Pyramid", buttonSize))
+				{ /* логика */
+				}
+				if (ImGui::Button("Sphere", buttonSize))
+				{ /* логика */
+				}
+			}
+		}
+		
 		ImGui::End();
 
 		ImGui::Render();
