@@ -96,7 +96,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Huawei\source\repos\OPENGL_2.0\include\core;C:\Users\Huawei\source\repos\OPENGL_2.0;C:\Users\Huawei\source\repos\OPENGL_2.0\include\render;C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\external\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,7 +112,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Huawei\source\repos\OPENGL_2.0\include\core;C:\Users\Huawei\source\repos\OPENGL_2.0;C:\Users\Huawei\source\repos\OPENGL_2.0\include\render;C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\external\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,7 +128,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Huawei\source\repos\OPENGL_2.0\include\core;C:\Users\Huawei\source\repos\OPENGL_2.0;C:\Users\Huawei\source\repos\OPENGL_2.0\include\render;C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\external\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,7 +144,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Huawei\source\repos\OPENGL_2.0\include\core;C:\Users\Huawei\source\repos\OPENGL_2.0;C:\Users\Huawei\source\repos\OPENGL_2.0\include\render;C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\external\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,7 +155,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Arcball.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="include\imgui.cpp" />
     <ClCompile Include="include\imgui\imgui_impl_glfw.cpp" />
@@ -163,17 +162,18 @@
     <ClCompile Include="include\imgui_draw.cpp" />
     <ClCompile Include="include\imgui_tables.cpp" />
     <ClCompile Include="include\imgui_widgets.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="src\core\Arcball.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\render\Shader.cpp" />
     <ClCompile Include="stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Arcball.h" />
-    <ClInclude Include="Shader.h" />
+    <ClInclude Include="include\core\Arcball.h" />
+    <ClInclude Include="include\render\Shader.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="3.3.shader.fs" />
-    <None Include="3.3.shader.vs" />
+    <None Include="shaders\3.3.shader.fs" />
+    <None Include="shaders\3.3.shader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
