@@ -1,29 +1,31 @@
 ﻿#define GLM_ENABLE_EXPERIMENTAL
 
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+
+#include <glm/gtx/quaternion.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+
 #include "Shader.h"
 #include "stb_image.h"
+#include "Arcball.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); // объявление функции
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow *window);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-bool dragging = false;
-
-glm::vec3 lastPos;
-glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+int gWidth = SCR_WIDTH;
+int gHeight = SCR_HEIGHT;
 
 // единый источник правды для зума
 float fov = 45.0f; // поле зрения
@@ -32,73 +34,7 @@ const GLfloat maxFov = 90.0f;
 
 const GLfloat zoomSpeed = 40.0f; // градусов в секунду
 
-// Arcball-rotation
-glm::vec3 screenToArcball(float x, float y) // преобразуем 2D-позицию курсора мыши (в пикселях) 
-// → в 3D-вектор на поверхности виртуальной сферы
-{
-	// переводим координаты курсора из пикселей в нормализованное простарнство [-1;1]
-	float nx = (2.0f * x - SCR_WIDTH) / SCR_WIDTH;
-	float ny = (SCR_HEIGHT - 2.0f * y) / SCR_HEIGHT;
-
-	float length2 = nx * nx + ny * ny; // вычисление квадрата длины вектора
-
-	if (length2 <= 1.0f) 
-		return glm::vec3(nx, ny, sqrt(1.0f - length2)); // на сфере
-	else 
-		return glm::normalize(glm::vec3(nx, ny, 0.0f)); // вне сферы
-}
-
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-// 1 аргумент - указатель на окно GLFW
-// 2 аргумент - какая кнопка мыши нажата 
-// 3 аргумент - сотбытие: GLFW_PRESS (нажатие) или GLFW_RELEASE (отпускание)
-// 4 аргумент - модификаторы клавиатуры (тут не используются)
-{
-	if (button == GLFW_MOUSE_BUTTON_LEFT) // обработка ЛКМ
-	{
-		if (action == GLFW_PRESS) // ЛКМ нажата
-		{
-			dragging = true; // флаг, что сейчас идет процесс перетаскивания
-			double x, y; 
-			glfwGetCursorPos(window, &x, &y); // получаем текущие координаты курсора мыши
-			lastPos = screenToArcball((float)x, float(y)); // преобразуем 2D-координаты мыши в 3D-точку на единичной сфере (Arcball)
-			// которая будет использоваться для вычисления вращения.
-		}
-		else if(action == GLFW_RELEASE) // Когда пользователь отпускает левую кнопку мыши, мы останавливаем процесс вращения.
-		{
-			dragging = false;
-		}
-	}
-}
-
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
-{
-	if (!dragging) // если пользователь не держит ЛКМ, то вращение не происходит
-		return;
-
-	glm::vec3 currPos = screenToArcball((float)xpos, (float)ypos); // преобразование курсора в точку на сфере
-
-	float dot = glm::clamp(glm::dot(lastPos, currPos), -1.0f, 1.0f);
-	// lastpos - точка на сфере на последнем кадре (или при нажатии кнопки мыши)
-	// dot - скалярное произведение двух векторов, показывает косинус угла между ними
-	// glm::clamp - защита от погрешности вычислений
-	float angle = acos(dot);  // угол между векторами на сфере
-
-	glm::vec3 axis = glm::cross(lastPos, currPos); // вычисление оси вращение, axis - вектор, перпендикулярный 
-	// lastPos и currPos.
-
-	// применение вращения через кватернион
-	if (glm::length(axis) > 0.0001f) // проверка, что ось не слишком мала
-	{
-		axis = glm::normalize(axis); // нормализация оси
-		glm::quat delta = glm::angleAxis(angle * 2.0f, axis); // создаем кватернион для вращения на вычисленный угол вокруг оси
-		rotation = delta * rotation; // обновляем общую ориентацию объекта
-	}
-
-	lastPos = currPos; // обновление последеней позиции
-}
-
+Arcball arcball(SCR_WIDTH, SCR_HEIGHT);
 
 int main()
 {
@@ -120,9 +56,9 @@ int main()
 	}
 
 	glfwMakeContextCurrent(window); // все следующие команды, которые будут вызваны относятся к этому окну.
-	glfwSetCursorPosCallback(window, cursor_position_callback);
-	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetCursorPosCallback(window, cursor_position_callback);
 
 	// получаем и сохраняем адреса функций OpenGL в памяти.
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -306,19 +242,19 @@ int main()
 		
 		// MODEL - только arcball + масштаб
 		glm::mat4 model = glm::mat4(1.0f);
-		model *= glm::toMat4(rotation);
+		model *= arcball.getRotationMatrix();
 		model = glm::scale(model, glm::vec3(0.5f));
 
 		// VIEW - камера (статичная)
 		glm::mat4 view = glm::lookAt(
 			glm::vec3(0.0f, 0.0f, 3.0f), // позиция камеры
-			glm::vec3(0.0f, 0.0f, 0.0f), // направление камера
+			glm::vec3(0.0f), // направление камера
 			glm::vec3(0.0f, 1.0f, 0.0f) // вверх камеры
 		);
 
 		// PROJECTION - перспектива
 		glm::mat4 projection = glm::perspective(
-			glm::radians(fov), (GLfloat)SCR_WIDTH / (GLfloat)SCR_HEIGHT,
+			glm::radians(fov), (GLfloat)gWidth / (GLfloat)gHeight,
 			0.1f,
 			100.0f
 		);
@@ -378,7 +314,23 @@ void processInput(GLFWwindow *window)
 	fov = glm::clamp(fov, minFov, maxFov);
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int SCR_WIDTH, int SCR_HEIGHT) // функция для изменения размера окна экрана 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) // функция для изменения размера окна экрана 
 {
-	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT); // задаем область просмотра 0,0 - начальная точка, width, height - конечная
+	gWidth = width;
+	gHeight = height;
+	glViewport(0, 0, width, height); // задаем область просмотра 0,0 - начальная точка, width, height - конечная
+	arcball.onResize(width, height);
 }
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int)
+{
+	double x, y;
+	glfwGetCursorPos(window, &x, &y);
+	arcball.onMouseButton(button, action, x, y);
+}
+
+void cursor_position_callback(GLFWwindow*, double x, double y)
+{
+	arcball.onCursorMove(x, y);
+}
+
