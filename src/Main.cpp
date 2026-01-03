@@ -22,6 +22,8 @@
 #include "Arcball.h"
 #include <EditorUI.h>
 
+#include "Mesh.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); // объявление функции
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
@@ -83,7 +85,7 @@ void renderPrimitive(Shader& shader, unsigned int VAO, Arcball& arcball, unsigne
 	shader.setMat4("projection", projection);
 
 	glBindVertexArray(VAO); // как только мы захотим нарисовать объект, мы просто привязываем VAO  к предпочтительным настройкам перед рисованием объекта
-	glDrawArrays(GL_TRIANGLES, 0, 36); // рисуем 2 треугольника
+	glDrawArrays(GL_TRIANGLES, 0, vertexCount); // рисуем 2 треугольника
 	// 1 аргумент - тип примитива
 	// 2 аргумент - кол-во элементов
 	// 3 аргумент - тип индексов, который имеет вид GL_UNSIGNED_INT
@@ -223,55 +225,8 @@ int main()
 		-0.5f,  0.0f,  0.5f,  0.0f, 0.0f
 	};
 
-	unsigned int VBO; // объявляем VBO
-	unsigned int VAO; // объявляем VAO
-
-	glGenBuffers(1, &VBO); // создаем буферный объект с идентификатором 1
-	glGenVertexArrays(1, &VAO); // создаем массив вершин
-
-	glBindVertexArray(VAO); // привязываем VAO
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO); // делаем VBO текущим буфером для цели GL_ARRAY_BUFFER
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // функция предназначенная для копирования пользовательских данных в связанный в данный момент буфер
-	/* 1 аргумент функции - это тип буфера, в который мы хотим скопировать данные
-	*  2 аргумент указывает размер данных в байтах
-	*  3 аргумент фактические данные, которые мы хотим отправить
-	*  4 аргумент способ обработки заданных данных */
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0); // хранение данных в VBO
-	// 1 параметр - какой вершинный атрибут мы хотим настроить
-	// 2 параметр - размер вершинного атрибута
-	// 3 параметр - тип данных
-	// 4 параметр - нормализация данных,  Если мы вводим целочисленные типы данных (int, byte) и устанавливаем для этого параметра значение GL_TRUE, целочисленные данные нормализуются до 0 (или -1 для знаковых данных)
-	// и 1 при преобразовании в число с плавающей запятой. Для нас это неактуально, поэтому оставим значение GL_FALSE.
-	// 5 параметр - шаг, сообщает нам расстояние между последовательными атрибутами вершин.
-	// 6 параметр - смещение, где в буфере начинаются данные о местоположении.
-	glEnableVertexAttribArray(0); // активируем атрибут позиции (location = 0)
-
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-
-	// VBO и VAO для пирамиды
-
-	unsigned int pyramidVBO, pyramidVAO;
-	glGenBuffers(1, &pyramidVBO);
-	glGenVertexArrays(1, &pyramidVAO);
-
-	glBindVertexArray(pyramidVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, pyramidVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(pyramidVertices), pyramidVertices, GL_STATIC_DRAW);
-
-	// позиция (layout = 0)
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	// текстура (layout = 1)
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-
-	// отвязка VAO
-	glBindVertexArray(0);
-
+	Mesh cube = createMesh(vertices, sizeof(vertices) / sizeof(float));
+	Mesh pyramid = createMesh(pyramidVertices, sizeof(pyramidVertices) / sizeof(float));
 
 	unsigned int texture1, texture2;
 	glGenTextures(1, &texture1); // принимает на вход количество текстур, которые мы хотим сгенерировать и сохраняет их в массиве texture
@@ -378,13 +333,10 @@ int main()
 		switch (currentPrimitive)
 		{
 		case PrimitiveType::Cube:
-			renderPrimitive(ourShader, VAO, arcball, 36, texture1, texture2);
+			renderPrimitive(ourShader, cube.VAO, arcball, cube.vertexCount, texture1, texture2);
 			break;
 		case PrimitiveType::Pyramid:
-			renderPrimitive(ourShader, pyramidVAO, arcball, 18 + 6, texture1, texture2);
-			break;
-		case PrimitiveType::Sphere:
-			// создать сферу
+			renderPrimitive(ourShader, pyramid.VAO, arcball, pyramid.vertexCount, texture1, texture2);
 			break;
 		default:
 			break;
@@ -393,9 +345,6 @@ int main()
 		glfwSwapBuffers(window); // меняет местами цветовой буфер
 		glfwPollEvents(); // проверка события, например ввод с клавиатуры
 	}
-	
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
 
 	glfwTerminate(); // удаляем все выделенные ресурсы
 	return 0;
