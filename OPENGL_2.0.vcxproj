@@ -164,6 +164,7 @@
     <ClCompile Include="include\imgui_tables.cpp" />
     <ClCompile Include="include\imgui_widgets.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="src\core\Arcball.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\render\Shader.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="include\core\Arcball.h" />
     <ClInclude Include="include\render\Shader.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Sphere.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\3.3.shader.fs" />

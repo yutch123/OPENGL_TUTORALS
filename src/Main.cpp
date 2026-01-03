@@ -23,6 +23,7 @@
 #include <EditorUI.h>
 
 #include "Mesh.h"
+#include "Sphere.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); // объявление функции
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -46,7 +47,7 @@ Arcball arcball(SCR_WIDTH, SCR_HEIGHT);
 // состояние выбранного примитива
 PrimitiveType currentPrimitive = PrimitiveType::None;
 
-void renderPrimitive(Shader& shader, unsigned int VAO, Arcball& arcball, unsigned int vertexCount, unsigned int texture1, unsigned int texture2)
+void renderPrimitive(Shader& shader, unsigned int VAO, Arcball& arcball, bool useIndices, unsigned int count, unsigned int texture1, unsigned int texture2)
 {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture1);
@@ -58,7 +59,7 @@ void renderPrimitive(Shader& shader, unsigned int VAO, Arcball& arcball, unsigne
 	// MODEL - только arcball + масштаб
 	glm::mat4 model = glm::mat4(1.0f);
 	model *= arcball.getRotationMatrix();
-	model = glm::scale(model, glm::vec3(0.5f));
+	model = glm::scale(model, glm::vec3(1.0f));
 
 	// VIEW - камера (статичная)
 	glm::mat4 view = glm::lookAt(
@@ -85,10 +86,10 @@ void renderPrimitive(Shader& shader, unsigned int VAO, Arcball& arcball, unsigne
 	shader.setMat4("projection", projection);
 
 	glBindVertexArray(VAO); // как только мы захотим нарисовать объект, мы просто привязываем VAO  к предпочтительным настройкам перед рисованием объекта
-	glDrawArrays(GL_TRIANGLES, 0, vertexCount); // рисуем 2 треугольника
-	// 1 аргумент - тип примитива
-	// 2 аргумент - кол-во элементов
-	// 3 аргумент - тип индексов, который имеет вид GL_UNSIGNED_INT
+	if (useIndices)
+		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
+	else
+		glDrawArrays(GL_TRIANGLES, 0, count);
 	glBindVertexArray(0); // отвязываем после рисвоания
 }
 
@@ -227,6 +228,7 @@ int main()
 
 	Mesh cube = createMesh(vertices, sizeof(vertices) / sizeof(float));
 	Mesh pyramid = createMesh(pyramidVertices, sizeof(pyramidVertices) / sizeof(float));
+	Sphere sphere(0.5f, 36, 18); // // радиус 0.5, 36 секторов, 18 стэков
 
 	unsigned int texture1, texture2;
 	glGenTextures(1, &texture1); // принимает на вход количество текстур, которые мы хотим сгенерировать и сохраняет их в массиве texture
@@ -333,10 +335,13 @@ int main()
 		switch (currentPrimitive)
 		{
 		case PrimitiveType::Cube:
-			renderPrimitive(ourShader, cube.VAO, arcball, cube.vertexCount, texture1, texture2);
+			renderPrimitive(ourShader, cube.VAO, arcball, false, cube.vertexCount, texture1, texture2);
 			break;
 		case PrimitiveType::Pyramid:
-			renderPrimitive(ourShader, pyramid.VAO, arcball, pyramid.vertexCount, texture1, texture2);
+			renderPrimitive(ourShader, pyramid.VAO, arcball, false, pyramid.vertexCount, texture1, texture2);
+			break;
+		case PrimitiveType::Sphere:
+			renderPrimitive(ourShader, sphere.VAO, arcball, true, sphere.indexCount, texture1, texture2);
 			break;
 		default:
 			break;
