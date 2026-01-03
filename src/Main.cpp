@@ -41,7 +41,10 @@ const GLfloat zoomSpeed = 10.0f; // градусов в секунду
 
 Arcball arcball(SCR_WIDTH, SCR_HEIGHT);
 
-void renderCube(Shader& shader, unsigned int VAO, Arcball& arcball, unsigned int texture1, unsigned int texture2)
+// состояние выбранного примитива
+PrimitiveType currentPrimitive = PrimitiveType::None;
+
+void renderPrimitive(Shader& shader, unsigned int VAO, Arcball& arcball, unsigned int vertexCount, unsigned int texture1, unsigned int texture2)
 {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture1);
@@ -84,6 +87,7 @@ void renderCube(Shader& shader, unsigned int VAO, Arcball& arcball, unsigned int
 	// 1 аргумент - тип примитива
 	// 2 аргумент - кол-во элементов
 	// 3 аргумент - тип индексов, который имеет вид GL_UNSIGNED_INT
+	glBindVertexArray(0); // отвязываем после рисвоания
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -189,7 +193,35 @@ int main()
 		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
+	// Пирамида
 
+	GLfloat pyramidVertices[] = {
+		// Пирамида с квадратным основанием, вершина в (0,1,0)
+		// Вершина
+		 0.0f,  1.0f,  0.0f,  0.5f, 1.0f, // верх
+		-0.5f,  0.0f,  0.5f,  0.0f, 0.0f, // передний левый
+		 0.5f,  0.0f,  0.5f,  1.0f, 0.0f, // передний правый
+
+		 0.0f,  1.0f,  0.0f,  0.5f, 1.0f, // верх
+		 0.5f,  0.0f,  0.5f,  1.0f, 0.0f, // передний правый
+		 0.5f,  0.0f, -0.5f,  1.0f, 1.0f, // задний правый
+
+		 0.0f,  1.0f,  0.0f,  0.5f, 1.0f,
+		 0.5f,  0.0f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.0f, -0.5f,  0.0f, 1.0f,
+
+		 0.0f,  1.0f,  0.0f,  0.5f, 1.0f,
+		-0.5f,  0.0f, -0.5f,  0.0f, 1.0f,
+		-0.5f,  0.0f,  0.5f,  0.0f, 0.0f,
+
+		// основание (квадрат)
+		-0.5f,  0.0f,  0.5f,  0.0f, 0.0f,
+		 0.5f,  0.0f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.0f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.0f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.0f, -0.5f,  0.0f, 1.0f,
+		-0.5f,  0.0f,  0.5f,  0.0f, 0.0f
+	};
 
 	unsigned int VBO; // объявляем VBO
 	unsigned int VAO; // объявляем VAO
@@ -218,6 +250,28 @@ int main()
 
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
+
+	// VBO и VAO для пирамиды
+
+	unsigned int pyramidVBO, pyramidVAO;
+	glGenBuffers(1, &pyramidVBO);
+	glGenVertexArrays(1, &pyramidVAO);
+
+	glBindVertexArray(pyramidVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, pyramidVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(pyramidVertices), pyramidVertices, GL_STATIC_DRAW);
+
+	// позиция (layout = 0)
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	// текстура (layout = 1)
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	// отвязка VAO
+	glBindVertexArray(0);
+
 
 	unsigned int texture1, texture2;
 	glGenTextures(1, &texture1); // принимает на вход количество текстур, которые мы хотим сгенерировать и сохраняет их в массиве texture
@@ -296,6 +350,8 @@ int main()
 	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
 	ourShader.setInt("texture2", 1);
 
+	// основной цикл рендеринга
+
 	while (!glfwWindowShouldClose(window)) // проверяем, нужно ли окну закрыться
 	{
 		processInput(window); // вызываем процесс ввода на каждой итерации цикла рендеринга
@@ -306,20 +362,26 @@ int main()
 		// Включаем каркасный режим
 		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-		renderCube(ourShader, VAO, arcball, texture1, texture2);
+		// Вызываем отрисовку куба
+		// renderPrimitive(ourShader, VAO, arcball, texture1, texture2);
 
 		// Рендер ImGui
 		editorUI.beginFrame();
 		editorUI.render();
 
-		PrimitiveType primitive = editorUI.consumePrimitiveRequest();
-		switch (primitive)
+		PrimitiveType requestedPrimitive = editorUI.consumePrimitiveRequest();
+		if (requestedPrimitive != PrimitiveType::None)
+		{
+			currentPrimitive = requestedPrimitive; // обновляем текущее состояние
+		}
+
+		switch (currentPrimitive)
 		{
 		case PrimitiveType::Cube:
-			// создать куб
+			renderPrimitive(ourShader, VAO, arcball, 36, texture1, texture2);
 			break;
 		case PrimitiveType::Pyramid:
-			// создать пирамиду
+			renderPrimitive(ourShader, pyramidVAO, arcball, 18 + 6, texture1, texture2);
 			break;
 		case PrimitiveType::Sphere:
 			// создать сферу
