@@ -48,12 +48,18 @@
     <ClCompile Include="src\render\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EditorUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\core\Arcball.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\render\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

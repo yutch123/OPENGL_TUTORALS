@@ -155,6 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EditorUI.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="include\imgui.cpp" />
     <ClCompile Include="include\imgui\imgui_impl_glfw.cpp" />
@@ -168,6 +169,7 @@
     <ClCompile Include="stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="EditorUI.h" />
     <ClInclude Include="include\core\Arcball.h" />
     <ClInclude Include="include\render\Shader.h" />
   </ItemGroup>

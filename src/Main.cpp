@@ -20,6 +20,7 @@
 #include "Shader.h"
 #include "stb_image.h"
 #include "Arcball.h"
+#include <EditorUI.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); // объявление функции
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -39,6 +40,51 @@ const GLfloat maxFov = 90.0f;
 const GLfloat zoomSpeed = 10.0f; // градусов в секунду
 
 Arcball arcball(SCR_WIDTH, SCR_HEIGHT);
+
+void renderCube(Shader& shader, unsigned int VAO, Arcball& arcball, unsigned int texture1, unsigned int texture2)
+{
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	// создание матрицы трансформации с Arcball вращением
+
+	// MODEL - только arcball + масштаб
+	glm::mat4 model = glm::mat4(1.0f);
+	model *= arcball.getRotationMatrix();
+	model = glm::scale(model, glm::vec3(0.5f));
+
+	// VIEW - камера (статичная)
+	glm::mat4 view = glm::lookAt(
+		glm::vec3(0.0f, 0.0f, 3.0f), // позиция камеры
+		glm::vec3(0.0f), // направление камера
+		glm::vec3(0.0f, 1.0f, 0.0f) // вверх камеры
+	);
+
+	// вычисляем aspect локально, чтобы защитить от 0 высоты
+	float aspect = (gHeight == 0) ? 1.0f : (float)gWidth / (float)gHeight;
+
+	// PROJECTION - перспектива
+	glm::mat4 projection = glm::perspective(
+		glm::radians(fov),
+		aspect,
+		0.1f,
+		100.0f
+	);
+
+	// передача в шейдер
+	shader.use();
+	shader.setMat4("model", model);
+	shader.setMat4("view", view);
+	shader.setMat4("projection", projection);
+
+	glBindVertexArray(VAO); // как только мы захотим нарисовать объект, мы просто привязываем VAO  к предпочтительным настройкам перед рисованием объекта
+	glDrawArrays(GL_TRIANGLES, 0, 36); // рисуем 2 треугольника
+	// 1 аргумент - тип примитива
+	// 2 аргумент - кол-во элементов
+	// 3 аргумент - тип индексов, который имеет вид GL_UNSIGNED_INT
+}
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
@@ -89,6 +135,10 @@ int main()
 	// Инициализация бэкендов
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
+
+	// UI слой
+
+	EditorUI editorUI;
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -256,79 +306,27 @@ int main()
 		// Включаем каркасный режим
 		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
-
-		// создание матрицы трансформации с Arcball вращением
-		
-		// MODEL - только arcball + масштаб
-		glm::mat4 model = glm::mat4(1.0f);
-		model *= arcball.getRotationMatrix();
-		model = glm::scale(model, glm::vec3(0.5f));
-
-		// VIEW - камера (статичная)
-		glm::mat4 view = glm::lookAt(
-			glm::vec3(0.0f, 0.0f, 3.0f), // позиция камеры
-			glm::vec3(0.0f), // направление камера
-			glm::vec3(0.0f, 1.0f, 0.0f) // вверх камеры
-		);
-
-		// PROJECTION - перспектива
-		glm::mat4 projection = glm::perspective(
-			glm::radians(fov), (GLfloat)gWidth / (GLfloat)gHeight,
-			0.1f,
-			100.0f
-		);
-
-		// передача в шейдер
-		ourShader.use();
-		ourShader.setMat4("model", model);
-		ourShader.setMat4("view", view);
-		ourShader.setMat4("projection", projection);
-
-		glBindVertexArray(VAO); // как только мы захотим нарисовать объект, мы просто привязываем VAO  к предпочтительным настройкам перед рисованием объекта
-		glDrawArrays(GL_TRIANGLES, 0, 36); // рисуем 2 треугольника
-		// 1 аргумент - тип примитива
-		// 2 аргумент - кол-во элементов
-		// 3 аргумент - тип индексов, который имеет вид GL_UNSIGNED_INT
+		renderCube(ourShader, VAO, arcball, texture1, texture2);
 
 		// Рендер ImGui
+		editorUI.beginFrame();
+		editorUI.render();
 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-
-		static bool primitivesCollapsed = false;
-
-		ImGuiIO& io = ImGui::GetIO();
-
-		ImGui::SetNextWindowPos(ImVec2(10, 10)); // верхний левый угол
-
-		ImGui::Begin("Primitives", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
+		PrimitiveType primitive = editorUI.consumePrimitiveRequest();
+		switch (primitive)
 		{
-			if (!ImGui::IsWindowCollapsed())
-			{
-				// Получаем доступное пространство внутри окна
-				ImVec2 buttonSize(120, 40); // // ширина и высота кнопки
-				// кнопки
-				if (ImGui::Button("Cube", buttonSize))
-				{ /* логика */
-				}
-				if (ImGui::Button("Pyramid", buttonSize))
-				{ /* логика */
-				}
-				if (ImGui::Button("Sphere", buttonSize))
-				{ /* логика */
-				}
-			}
+		case PrimitiveType::Cube:
+			// создать куб
+			break;
+		case PrimitiveType::Pyramid:
+			// создать пирамиду
+			break;
+		case PrimitiveType::Sphere:
+			// создать сферу
+			break;
+		default:
+			break;
 		}
-		
-		ImGui::End();
-
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(window); // меняет местами цветовой буфер
 		glfwPollEvents(); // проверка события, например ввод с клавиатуры
@@ -376,9 +374,9 @@ void processInput(GLFWwindow *window)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) // функция для изменения размера окна экрана 
 {
 	gWidth = width;
-	gHeight = height;
+	gHeight = (height == 0) ? 1 : height;
 	glViewport(0, 0, width, height); // задаем область просмотра 0,0 - начальная точка, width, height - конечная
-	arcball.onResize(width, height);
+	arcball.onResize(gWidth, gHeight);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int)
