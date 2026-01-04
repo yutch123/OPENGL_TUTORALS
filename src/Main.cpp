@@ -47,12 +47,10 @@ Arcball arcball(SCR_WIDTH, SCR_HEIGHT);
 // состояние выбранного примитива
 PrimitiveType currentPrimitive = PrimitiveType::None;
 
-void renderPrimitive(Shader& shader, unsigned int VAO, Arcball& arcball, bool useIndices, unsigned int count, unsigned int texture1, unsigned int texture2)
+void renderPrimitive(Shader& shader, unsigned int VAO, Arcball& arcball, bool useIndices, unsigned int count, unsigned int texture1)
 {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture1);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, texture2);
 
 	// создание матрицы трансформации с Arcball вращением
 
@@ -91,6 +89,7 @@ void renderPrimitive(Shader& shader, unsigned int VAO, Arcball& arcball, bool us
 	else
 		glDrawArrays(GL_TRIANGLES, 0, count);
 	glBindVertexArray(0); // отвязываем после рисвоания
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -150,6 +149,9 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 
 	Shader ourShader("shaders/3.3.shader.vs", "shaders/3.3.shader.fs");
+
+	ourShader.use();
+	ourShader.setInt("texture1", 0);
 
 	GLfloat vertices[] = {
 		// первый треугольник //текстуры
@@ -230,7 +232,7 @@ int main()
 	Mesh pyramid = createMesh(pyramidVertices, sizeof(pyramidVertices) / sizeof(float));
 	Sphere sphere(0.5f, 36, 18); // // радиус 0.5, 36 секторов, 18 стэков
 
-	unsigned int texture1, texture2;
+	unsigned int texture1;
 	glGenTextures(1, &texture1); // принимает на вход количество текстур, которые мы хотим сгенерировать и сохраняет их в массиве texture
 	glBindTexture(GL_TEXTURE_2D, texture1); // привязываем текстуру
 	// теперь мы можем начать создавать текстуру, используя ранее загруженные данные
@@ -276,37 +278,6 @@ int main()
 
 	stbi_image_free(data);
 
-	// texture2
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	data = stbi_load("assets/texture/AUDUMBLA.png", &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		GLenum format;
-		if (nrChannels == 1) format = GL_RED;
-		else if (nrChannels == 3) format = GL_RGB;
-		else if (nrChannels == 4) format = GL_RGBA;
-
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
-
-	ourShader.use();
-	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
-	ourShader.setInt("texture2", 1);
-
 	// основной цикл рендеринга
 
 	while (!glfwWindowShouldClose(window)) // проверяем, нужно ли окну закрыться
@@ -335,13 +306,13 @@ int main()
 		switch (currentPrimitive)
 		{
 		case PrimitiveType::Cube:
-			renderPrimitive(ourShader, cube.VAO, arcball, false, cube.vertexCount, texture1, texture2);
+			renderPrimitive(ourShader, cube.VAO, arcball, false, cube.vertexCount, texture1);
 			break;
 		case PrimitiveType::Pyramid:
-			renderPrimitive(ourShader, pyramid.VAO, arcball, false, pyramid.vertexCount, texture1, texture2);
+			renderPrimitive(ourShader, pyramid.VAO, arcball, false, pyramid.vertexCount, texture1);
 			break;
 		case PrimitiveType::Sphere:
-			renderPrimitive(ourShader, sphere.VAO, arcball, true, sphere.indexCount, texture1, texture2);
+			renderPrimitive(ourShader, sphere.VAO, arcball, true, sphere.indexCount, texture1);
 			break;
 		default:
 			break;
