@@ -1,41 +1,32 @@
 #include "Mesh.h"
 
-Mesh createMesh(const float* vertices, size_t vertexFloatCount)
-{
+Mesh createMesh(const std::vector<Vertex>& vertices) {
+    
     Mesh mesh;
-    mesh.vertexCount = static_cast<unsigned int>(vertexFloatCount / 5);
+    mesh.vertexCount = vertices.size();
 
     glGenVertexArrays(1, &mesh.VAO);
     glGenBuffers(1, &mesh.VBO);
 
     glBindVertexArray(mesh.VAO);
+
     glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        vertexFloatCount * sizeof(float),
-        vertices,
-        GL_STATIC_DRAW
-    );
-
-    // position (layout = 0)
-    glVertexAttribPointer(
-        0, 3, GL_FLOAT, GL_FALSE,
-        5 * sizeof(float),
-        (void*)0
-    );
+    // position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
-
-    // texcoord (layout = 1)
-    glVertexAttribPointer(
-        1, 2, GL_FLOAT, GL_FALSE,
-        5 * sizeof(float),
-        (void*)(3 * sizeof(float))
-    );
+    // normal
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
     glEnableVertexAttribArray(1);
+    // texCoords
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
+
     return mesh;
+
 }
 
 void Mesh::draw() const

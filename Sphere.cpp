@@ -1,40 +1,50 @@
 #include "Sphere.h"
+#include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
-#include <cmath>
+#include "Mesh.h" // где определён Vertex
 
 Sphere::Sphere(float radius, unsigned int sectorCount, unsigned int stackCount)
 {
-    std::vector<float> vertices;
+    std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
-    // генерируем вершины и texcoords
+    float x, y, z, xy;
+    float nx, ny, nz, lengthInv = 1.0f / radius;
+    float s, t;
+
+    float sectorStep = 2 * glm::pi<float>() / sectorCount;
+    float stackStep = glm::pi<float>() / stackCount;
+    float sectorAngle, stackAngle;
+
     for (unsigned int i = 0; i <= stackCount; ++i)
     {
-        float stackAngle = glm::half_pi<float>() - i * glm::pi<float>() / stackCount; // от pi/2 до -pi/2
-        float xy = radius * cosf(stackAngle);
-        float z = radius * sinf(stackAngle);
+        stackAngle = glm::half_pi<float>() - i * stackStep;
+        xy = radius * cosf(stackAngle);
+        z = radius * sinf(stackAngle);
 
         for (unsigned int j = 0; j <= sectorCount; ++j)
         {
-            float sectorAngle = j * 2 * glm::pi<float>() / sectorCount;
-            float x = xy * cosf(sectorAngle);
-            float y = xy * sinf(sectorAngle);
+            sectorAngle = j * sectorStep;
 
-            // позиция
-            vertices.push_back(x);
-            vertices.push_back(y);
-            vertices.push_back(z);
+            x = xy * cosf(sectorAngle);
+            y = xy * sinf(sectorAngle);
 
-            // texcoords
-            float s = (float)j / sectorCount;
-            float t = (float)i / stackCount;
-            vertices.push_back(s);
-            vertices.push_back(t);
+            nx = x * lengthInv;
+            ny = y * lengthInv;
+            nz = z * lengthInv;
+
+            s = (float)j / sectorCount;
+            t = (float)i / stackCount;
+
+            Vertex vertex;
+            vertex.Position = glm::vec3(x, y, z);
+            vertex.Normal = glm::normalize(glm::vec3(nx, ny, nz));
+            vertex.TexCoords = glm::vec2(s, t);
+            vertices.push_back(vertex);
         }
     }
 
-    // генерируем индексы
     for (unsigned int i = 0; i < stackCount; ++i)
     {
         unsigned int k1 = i * (sectorCount + 1);
@@ -48,6 +58,7 @@ Sphere::Sphere(float radius, unsigned int sectorCount, unsigned int stackCount)
                 indices.push_back(k2);
                 indices.push_back(k1 + 1);
             }
+
             if (i != (stackCount - 1))
             {
                 indices.push_back(k1 + 1);
@@ -59,7 +70,6 @@ Sphere::Sphere(float radius, unsigned int sectorCount, unsigned int stackCount)
 
     indexCount = static_cast<unsigned int>(indices.size());
 
-    // создаем VAO, VBO, EBO
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -67,18 +77,19 @@ Sphere::Sphere(float radius, unsigned int sectorCount, unsigned int stackCount)
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-    // позиция
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // texcoords
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 }
@@ -100,8 +111,6 @@ void Sphere::destroy()
     if (VBO) glDeleteBuffers(1, &VBO);
     if (EBO) glDeleteBuffers(1, &EBO);
     if (VAO) glDeleteVertexArrays(1, &VAO);
-    VBO = 0;
-    EBO = 0;
-    VAO = 0;
+    VBO = EBO = VAO = 0;
     indexCount = 0;
 }
