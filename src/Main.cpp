@@ -71,6 +71,31 @@
 // Обычно наследуется от Mesh или использует его
 #include "Sphere.h"
 
+// Assimp
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+// Windows API
+
+#include <Windows.h>
+
+void assimpTest()
+{
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(
+		"assets/models/test.obj",
+		aiProcess_Triangulate |
+		aiProcess_FlipUVs
+	);
+
+	if (!scene)
+	{
+		OutputDebugStringA(importer.GetErrorString());
+	}
+}
+
 // =======================
 // GLFW callbacks — объявления
 // =======================
