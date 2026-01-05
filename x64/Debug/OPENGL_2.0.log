@@ -1,16 +1,1 @@
-﻿  EditorUI.cpp
-  imgui.cpp
-  imgui_impl_glfw.cpp
-  imgui_impl_opengl3.cpp
-  imgui_draw.cpp
-  imgui_tables.cpp
-  imgui_widgets.cpp
-  Mesh.cpp
-C:\Users\Huawei\source\repos\OPENGL_2.0\Mesh.cpp(7,39): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
-  Sphere.cpp
-  Arcball.cpp
-  Shader.cpp
-  stb_image.cpp
-  Generating Code...
-  glad.c
-  OPENGL_2.0.vcxproj -> C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\OPENGL_2.0.exe
+﻿  OPENGL_2.0.vcxproj -> C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\OPENGL_2.0.exe
