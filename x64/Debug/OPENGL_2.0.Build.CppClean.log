@@ -2,9 +2,9 @@ c:\users\huawei\source\repos\opengl_2.0\x64\debug\vc142.pdb
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\vc142.idb
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\stb_image.obj
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\shader.obj
+c:\users\huawei\source\repos\opengl_2.0\x64\debug\main.obj
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\arcball.obj
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\sphere.obj
-c:\users\huawei\source\repos\opengl_2.0\x64\debug\mesh.obj
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\imgui_widgets.obj
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\imgui_tables.obj
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\imgui_draw.obj
@@ -12,10 +12,10 @@ c:\users\huawei\source\repos\opengl_2.0\x64\debug\imgui_impl_opengl3.obj
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\imgui_impl_glfw.obj
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\imgui.obj
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\editorui.obj
+c:\users\huawei\source\repos\opengl_2.0\x64\debug\mesh.obj
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\glad.obj
-c:\users\huawei\source\repos\opengl_2.0\x64\debug\main.obj
-c:\users\huawei\source\repos\opengl_2.0\x64\debug\opengl_2.0.ilk
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\opengl_2.0.exe
+c:\users\huawei\source\repos\opengl_2.0\x64\debug\opengl_2.0.ilk
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\opengl_2.0.pdb
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\opengl_2.0.tlog\cl.command.1.tlog
 c:\users\huawei\source\repos\opengl_2.0\x64\debug\opengl_2.0.tlog\cl.read.1.tlog

@@ -61,16 +61,6 @@
 // Управляет параметрами сцены, но не рендерингом
 #include <EditorUI.h>
 
-// =======================
-// Геометрия / примитивы
-// =======================
-
-// Mesh — базовый класс для работы с VAO/VBO/EBO и отрисовки геометрии
-#include "Mesh.h"
-// Sphere — примитив сферы (генерация вершин и индексов)
-// Обычно наследуется от Mesh или использует его
-#include "Sphere.h"
-
 // Assimp
 
 #include <assimp/Importer.hpp>
@@ -80,21 +70,6 @@
 // Windows API
 
 #include <Windows.h>
-
-void assimpTest()
-{
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(
-		"assets/models/test.obj",
-		aiProcess_Triangulate |
-		aiProcess_FlipUVs
-	);
-
-	if (!scene)
-	{
-		OutputDebugStringA(importer.GetErrorString());
-	}
-}
 
 // =======================
 // GLFW callbacks — объявления
@@ -116,7 +91,6 @@ void processInput(GLFWwindow *window);
 // =======================
 // Размеры окна (константы)
 // =======================
-
 
 // Начальная ширина окна приложения
 const unsigned int SCR_WIDTH = 800;
@@ -159,107 +133,6 @@ const GLfloat zoomSpeed = 10.0f;
 // Инициализируется начальными размерами экрана,
 // что необходимо для корректного проецирования координат курсора.
 Arcball arcball(SCR_WIDTH, SCR_HEIGHT);
-
-// =======================
-// Состояние сцены
-// =======================
-
-// Текущий выбранный примитив сцены.
-// Используется для определения того, какой объект нужно создавать/рендерить.
-// PrimitiveType::None означает, что примитив не выбран.
-PrimitiveType currentPrimitive = PrimitiveType::None;
-
-void renderPrimitive(Shader& shader, unsigned int VAO, Arcball& arcball, bool useIndices, unsigned int count, unsigned int texture1)
-{
-	// =======================
-	// Текстура
-	// =======================
-
-	// Активируем текстурный юнит 0
-	glActiveTexture(GL_TEXTURE0); 
-	// Привязываем 2D-текстуру к текущему юниту
-	glBindTexture(GL_TEXTURE_2D, texture1);
-
-	// =======================
-	// Model matrix (объект)
-	// =======================
-
-	// Единичная матрица — базовое состояние без трансформаций
-	glm::mat4 model = glm::mat4(1.0f);
-	// Применяем вращение, полученное от Arcball (интерактивное вращение мышью)
-	model *= arcball.getRotationMatrix();
-	// Масштабирование объекта (сейчас 1.0 — без изменения размера)
-	model = glm::scale(model, glm::vec3(1.0f));
-
-	// =======================
-	// View matrix (камера)
-	// =======================
-
-	// Простая камера, смотрящая из точки (0, 0, 3) в начало координат
-	glm::mat4 view = glm::lookAt(
-		glm::vec3(0.0f, 0.0f, 3.0f), // позиция камеры
-		glm::vec3(0.0f), // точка, куда смотрим
-		glm::vec3(0.0f, 1.0f, 0.0f) // вектор "вверх"
-	);
-
-	// =======================
-	// Projection matrix
-	// =======================
-
-	 // Защита от деления на ноль при сворачивании окна
-	float aspect = (gHeight == 0) ? 1.0f : (float)gWidth / (float)gHeight;
-
-	// Перспективная проекция
-	glm::mat4 projection = glm::perspective(
-		glm::radians(fov), // поле зрения (зум)
-		aspect, // соотношение сторон окна
-		0.1f, // ближняя плоскость отсечения
-		100.0f // дальняя плоскость отсечения
-	);
-
-	// =======================
-	// Передача данных в шейдер
-	// =======================
-
-	// Активация shader program
-	shader.use();
-	// Позиция источника света в мировом пространстве
-	shader.setVec3("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
-
-	// Позиция камеры (используется для расчёта освещения)
-	shader.setVec3("viewPos", glm::vec3(0.0f, 0.0f, 3.0f));
-
-	// Матрицы преобразований
-	shader.setMat4("model", model);
-	shader.setMat4("view", view);
-	shader.setMat4("projection", projection);
-
-	// =======================
-	// Отрисовка геометрии
-	// =======================
-
-	// Привязываем VAO примитива
-	glBindVertexArray(VAO); 
-
-	// Выбор способа отрисовки:
-	// - glDrawElements → индексированная геометрия (EBO)
-	// - glDrawArrays   → неиндексированная геометрия
-
-	if (useIndices)
-		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
-	else
-		glDrawArrays(GL_TRIANGLES, 0, count);
-
-	// =======================
-	// Очистка состояния
-	// =======================
-
-	// Отвязываем VAO
-	glBindVertexArray(0);
-
-	// Отвязываем текстуру
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
@@ -331,97 +204,6 @@ int main()
 	ourShader.use();
 	ourShader.setInt("texture1", 0);
 
-	// Создаем вершины для куба (позиция, нормаль, текстурные координаты)
-	std::vector<Vertex> cubeVertices = {
-
-	// Передняя грань (z = -0.5)
-	Vertex({-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}),
-	Vertex({ 0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f}),
-	Vertex({ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}),
-	Vertex({ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}),
-	Vertex({-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f}),
-	Vertex({-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}),
-
-	// Задняя грань (z = 0.5)
-	Vertex({-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}),
-	Vertex({ 0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}),
-	Vertex({ 0.5f,  0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}),
-	Vertex({ 0.5f,  0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}),
-	Vertex({-0.5f,  0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}),
-	Vertex({-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}),
-
-	// Левая грань (x = -0.5)
-	Vertex({-0.5f,  0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}),
-	Vertex({-0.5f,  0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}),
-	Vertex({-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}),
-	Vertex({-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}),
-	Vertex({-0.5f, -0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}),
-	Vertex({-0.5f,  0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}),
-
-	// Правая грань (x = 0.5)
-	Vertex({ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}),
-	Vertex({ 0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}),
-	Vertex({ 0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}),
-	Vertex({ 0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}),
-	Vertex({ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}),
-	Vertex({ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}),
-
-	// Нижняя грань (y = -0.5)
-	Vertex({-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}),
-	Vertex({ 0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}),
-	Vertex({ 0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}),
-	Vertex({ 0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}),
-	Vertex({-0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}),
-	Vertex({-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}),
-
-	// Верхняя грань (y = 0.5)
-	Vertex({-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}),
-	Vertex({ 0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}),
-	Vertex({ 0.5f, 0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}),
-	Vertex({ 0.5f, 0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}),
-	Vertex({-0.5f, 0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}),
-	Vertex({-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}),
-	};
-
-	// Пирамида
-
-	std::vector<Vertex> pyramidVertices = {
-		// Вершина
-		Vertex({ 0.0f,  0.5f,  0.0f}, {0.0f, 1.0f, 0.0f}, {0.5f, 1.0f}),
-		// Передний левый
-		Vertex({-0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}),
-		// Передний правый
-		Vertex({ 0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}),
-		// Правая грань
-		Vertex({ 0.0f,  0.5f,  0.0f}, {1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}),
-		Vertex({ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}),
-		Vertex({ 0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}),
-
-		// Задняя грань
-		Vertex({ 0.0f,  0.5f,  0.0f}, {0.0f, 0.0f, -1.0f}, {0.5f, 1.0f}),
-		Vertex({ 0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}),
-		Vertex({-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f}),
-
-		// Левая грань
-		Vertex({ 0.0f,  0.5f,  0.0f}, {-1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}),
-		Vertex({-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}),
-		Vertex({-0.5f, -0.5f,  0.5f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}),
-
-		// Основание (два треугольника)
-		Vertex({-0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}),
-		Vertex({ 0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}),
-		Vertex({ 0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}),
-
-		Vertex({ 0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}),
-		Vertex({-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}),
-		Vertex({-0.5f, -0.5f,  0.5f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}),
-	};
-
-	// Создаем меши для рендеринга примитивов
-	Mesh cube = createMesh(cubeVertices);
-	Mesh pyramid = createMesh(pyramidVertices);
-	Sphere sphere(0.5f, 36, 18); // Создаем сферу (радиус, количество секторов, стэков)
-
 	// Генерация и настройка текстуры
 	unsigned int texture1;
 	glGenTextures(1, &texture1); // Создаем объект текстуры
@@ -463,38 +245,27 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-		// Включаем каркасный режим
-		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		// Используем шейдер
+		ourShader.use();
 
-		// Вызываем отрисовку куба
-		// renderPrimitive(ourShader, VAO, arcball, texture1, texture2);
+		// Устанавливаем матрицы (view, projection, model)
+		glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)gWidth / gHeight, 0.1f, 100.0f);
+		glm::mat4 model = glm::mat4(1.0f);
+		model *= arcball.getRotationMatrix();
+
+		ourShader.setMat4("view", view);
+		ourShader.setMat4("projection", projection);
+		ourShader.setMat4("model", model);
+
+		// Привязываем текстуру перед отрисовкой
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+
 
 		// Рендеринг ImGui
 		editorUI.beginFrame();
 		editorUI.render();
-
-		// Получаем текущий запрос на примитив из UI
-		PrimitiveType requestedPrimitive = editorUI.consumePrimitiveRequest();
-		if (requestedPrimitive != PrimitiveType::None)
-		{
-			currentPrimitive = requestedPrimitive; 
-		}
-
-		// Рендерим выбранный примитив
-		switch (currentPrimitive)
-		{
-		case PrimitiveType::Cube:
-			renderPrimitive(ourShader, cube.VAO, arcball, false, cube.vertexCount, texture1);
-			break;
-		case PrimitiveType::Pyramid:
-			renderPrimitive(ourShader, pyramid.VAO, arcball, false, pyramid.vertexCount, texture1);
-			break;
-		case PrimitiveType::Sphere:
-			renderPrimitive(ourShader, sphere.VAO, arcball, true, sphere.indexCount, texture1);
-			break;
-		default:
-			break;
-		}
 
 		glfwSwapBuffers(window); // Меняем цветовые буферы местами
 		glfwPollEvents(); // Обрабатываем события ввода
@@ -570,6 +341,9 @@ void processInput(GLFWwindow *window)
 
 	fov = glm::clamp(fov, minFov, maxFov);
 }
+
+// Загрузка модели через Assimp
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) // функция для изменения размера окна экрана 
 {
