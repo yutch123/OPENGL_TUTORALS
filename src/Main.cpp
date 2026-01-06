@@ -5,7 +5,6 @@
 // =======================
 // GLM — математика
 // =======================
-
 // Базовые типы GLM: vec*, mat*, операции
 #include <glm/glm.hpp>
 // Утилиты для матриц преобразований (translate, rotate, scale, perspective и т.д.)
@@ -67,9 +66,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-// Windows API
-
-#include <Windows.h>
+#include <Model.h>
 
 // =======================
 // GLFW callbacks — объявления
@@ -133,6 +130,8 @@ const GLfloat zoomSpeed = 10.0f;
 // Инициализируется начальными размерами экрана,
 // что необходимо для корректного проецирования координат курсора.
 Arcball arcball(SCR_WIDTH, SCR_HEIGHT);
+
+Model* loadedModel = nullptr; // указатель на модель
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
@@ -251,8 +250,15 @@ int main()
 		// Устанавливаем матрицы (view, projection, model)
 		glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)gWidth / gHeight, 0.1f, 100.0f);
-		glm::mat4 model = glm::mat4(1.0f);
-		model *= arcball.getRotationMatrix();
+		glm::mat4 model = arcball.getRotationMatrix();
+
+		// применяем масштаб только если модель загружена
+		if (loadedModel)
+		{
+			float s = loadedModel->getScale();
+			if (s <= 0.0f) s = 1.0f; // защита от нуля
+			model = glm::scale(model, glm::vec3(s));
+		}
 
 		ourShader.setMat4("view", view);
 		ourShader.setMat4("projection", projection);
@@ -262,6 +268,24 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 
+		if (editorUI.loadModelRequested)
+		{
+			if (loadedModel) delete loadedModel;
+			loadedModel = new Model("assets/models/Model3D.obj");
+
+			glm::vec3 modelSize = loadedModel->getSize();
+			float maxDimension = glm::max(glm::max(modelSize.x, modelSize.y), modelSize.z);
+			if (maxDimension <= 0.0f) maxDimension = 1.0f;
+			float scaleFactor = 1.0f / maxDimension;
+			loadedModel->setScale(scaleFactor);
+
+			editorUI.loadModelRequested = false;
+		}
+
+		if (loadedModel)
+		{
+			loadedModel->Draw(ourShader);
+		}
 
 		// Рендеринг ImGui
 		editorUI.beginFrame();

@@ -13,7 +13,6 @@ enum class PrimitiveType
 // Класс для пользовательского интерфейса (UI) редактора
 class EditorUI
 {
-	bool loadModelRequested = false;
 
 public:
 	// Начало нового кадра ImGui — нужно вызывать один раз в цикле рендеринга
@@ -25,11 +24,12 @@ public:
 	// После вызова сбрасывает запрос на None
 	PrimitiveType consumePrimitiveRequest();
 
+	bool loadModelRequested = false;
+
 private:
 	// Создает окно с кнопками для выбора примитивов
 	void drawPrimitivesWindow();
 	void drawModelWindow(); // новое окно с кнопкой для загрузки модели
 
-private:
 	PrimitiveType requestedPrimitive = PrimitiveType::None; // хранит текущий запрос от UI
 };

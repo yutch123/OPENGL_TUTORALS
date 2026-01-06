@@ -1,32 +1,56 @@
 #pragma once
-
 #include <string>
 #include <vector>
-#include "Mesh.h"
-#include "Shader.h"
-#include <assimp/scene.h>
-#include <assimp/mesh.h>
-
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <cfloat>  // дл€ FLT_MAX
+#include "Mesh.h"      // дл€ Mesh и Texture
+#include "Shader.h"    // дл€ Shader
+#include <assimp/scene.h>  // дл€ aiNode, aiScene, aiMesh, aiMaterial, aiTextureType
 
 class Model
 {
-public:
-	//  онструктор - создает модель из файла
-	Model(const std::string& path);
+	public:
+		Model(const std::string& path)
+		{
+			loadModel(path);
+			calculateBoundingBox(); // вычисл€ем размеры сразу после загрузк
+		}
 
-	// ќтрисовка модели
-	void Draw(Shader& shader, bool drawModel = true);
+		void Draw(Shader& shader);
 
-private:
-	std::vector<Mesh> meshes; // все меши модели
-	std::string directory; // путь к папке с моделью
+		glm::vec3 getSize() const { return maxBounds - minBounds; }
+		void setScale(float s) { scale = s; }
+		float getScale() const { return scale; }  
 
-	// методы дл€ загрузки модели
-	void loadModel(const std::string& path);
+	private:
+		// model data
+		std::vector<Mesh> meshes;
+		std::string directory;
+		std::vector<Texture> textures_loaded;
 
-	// –екурсивна€ обработка узлов Assimp
-	void processNode(aiNode* node, const aiScene* scene);
+		float scale = 1.0f;
 
-	// ѕреобразование aiMesh в наш Mesh
-	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
+		glm::vec3 minBounds = glm::vec3(FLT_MAX);
+		glm::vec3 maxBounds = glm::vec3(-FLT_MAX);
+
+		void loadModel(const std::string& path);
+		void processNode(aiNode* node, const aiScene* scene);
+		Mesh processMesh(aiMesh* mesh, const aiScene* scene);
+		std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, const std::string& typeName);
+
+		void calculateBoundingBox()
+    {
+        for (const auto& mesh : meshes)
+        {
+            for (const auto& v : mesh.vertices)
+            {
+                minBounds = glm::min(minBounds, v.Position);
+                maxBounds = glm::max(maxBounds, v.Position);
+            }
+        }
+    }
+
 };
+
+

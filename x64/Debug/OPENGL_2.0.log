@@ -1,18 +1,1 @@
-﻿  EditorUI.cpp
-  imgui.cpp
-  imgui_impl_glfw.cpp
-  imgui_impl_opengl3.cpp
-  imgui_draw.cpp
-  imgui_tables.cpp
-  imgui_widgets.cpp
-  Arcball.cpp
-  Main.cpp
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
-C:\Users\Huawei\source\repos\OPENGL_2.0\Libraries\include\glad\glad.h(32): message : see previous definition of 'APIENTRY'
-C:\Users\Huawei\source\repos\OPENGL_2.0\src\Main.cpp(287,26): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\Huawei\source\repos\OPENGL_2.0\src\Main.cpp(290,22): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
-  Shader.cpp
-  stb_image.cpp
-  Generating Code...
-  glad.c
-  OPENGL_2.0.vcxproj -> C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\OPENGL_2.0.exe
+﻿  OPENGL_2.0.vcxproj -> C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\OPENGL_2.0.exe
