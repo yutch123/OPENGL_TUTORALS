@@ -1,4 +1,4 @@
-# Blender 5.0.1 MTL File: 'None'
+# Blender 5.0.1 MTL File: 'Model3D.blend'
 # www.blender.org
 
 newmtl Material
@@ -33,10 +33,10 @@ illum 2
 
 newmtl Material.003
 Ns 250.000000
-Ka 1.000000 1.000000 1.000000
+Ka 0.660256 0.660256 0.660256
 Kd 0.203901 0.800007 0.034088
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
-Ni 1.500000
+Ni 1.000000
 d 1.000000
-illum 2
+illum 3

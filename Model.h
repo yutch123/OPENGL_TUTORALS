@@ -26,6 +26,7 @@ class Model
 	private:
 		// model data
 		std::vector<Mesh> meshes;
+		std::vector<glm::vec3> meshColors;
 		std::string directory;
 		std::vector<Texture> textures_loaded;
 

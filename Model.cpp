@@ -7,8 +7,16 @@
 void Model::Draw(Shader & shader)
 {
 
-	for (unsigned int i = 0; i < meshes.size(); i++)
-		meshes[i].Draw(shader);
+    for (unsigned int i = 0; i < meshes.size(); i++)
+    {
+        shader.use();
+
+        // если у меша нет текстур, используем цвет
+        if (meshes[i].textures.empty())
+            shader.setVec3("objectColor", meshColors[i]);
+
+        meshes[i].Draw(shader);
+    }
 }
 
 void Model::loadModel(const std::string& path)
@@ -79,11 +87,24 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
 
 void Model::processNode(aiNode* node, const aiScene* scene)
 {
-    // Обработка всех мешей на этом узле
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
-        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        meshes.push_back(processMesh(mesh, scene));
+        aiMesh* aiMesh = scene->mMeshes[node->mMeshes[i]];
+
+        // создаём Mesh один раз
+        Mesh newMesh = processMesh(aiMesh, scene);
+        meshes.push_back(newMesh);
+
+        // сохраняем цвет для этого меша
+        glm::vec3 meshColor(1.0f); // по умолчанию белый
+        if (aiMesh->mMaterialIndex >= 0)
+        {
+            aiMaterial* material = scene->mMaterials[aiMesh->mMaterialIndex];
+            aiColor3D color(1.0f, 1.0f, 1.0f);
+            if (material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS)
+                meshColor = glm::vec3(color.r, color.g, color.b);
+        }
+        meshColors.push_back(meshColor);
     }
 
     // Рекурсивная обработка дочерних узлов
@@ -126,6 +147,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     if (mesh->mMaterialIndex >= 0)
     {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+        aiColor3D color;
 
         std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());

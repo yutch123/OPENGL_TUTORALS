@@ -1,1 +1,7 @@
-﻿  OPENGL_2.0.vcxproj -> C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\OPENGL_2.0.exe
+﻿  Mesh.cpp
+  Model.cpp
+  Main.cpp
+C:\Users\Huawei\source\repos\OPENGL_2.0\src\Main.cpp(311,26): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Huawei\source\repos\OPENGL_2.0\src\Main.cpp(314,22): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
+  Generating Code...
+  OPENGL_2.0.vcxproj -> C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\OPENGL_2.0.exe
