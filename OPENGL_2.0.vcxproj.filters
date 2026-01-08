@@ -82,5 +82,11 @@
     <None Include="shaders\3.3.shader.vs">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="shaders\picking.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="shaders\picking.vs">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

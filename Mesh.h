@@ -38,6 +38,7 @@ class Mesh {
 		);
 		
 		void Draw(Shader& shader);
+		void DrawForPicking(Shader& shader, const glm::vec3& color);
 
 	private:
 		// render data

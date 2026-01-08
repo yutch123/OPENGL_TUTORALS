@@ -12,12 +12,18 @@ void EditorUI::beginFrame()
 }
 
 // Отрисовка UI и вывод на экран
-void EditorUI::render()
+void EditorUI::render(Model* model)
 {
     drawModelWindow(); // новое окно загрузки модели
 
-	ImGui::Render(); // подготавливаем отрисовку
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); // отрисовываем через OpenGL
+    if (ImGui::Button("Show All Meshes")) // кнопка в UI
+    {
+        if (model)
+            model->selectMesh(-1); // сбрасываем выбор, рисуем все меши
+    }
+
+    ImGui::Render(); // подготавливаем отрисовку
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); // отрисовываем через OpenGL
 }
 
 void EditorUI::drawModelWindow()

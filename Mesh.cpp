@@ -88,3 +88,14 @@ void Mesh::Draw(Shader& shader)
 
 	glActiveTexture(GL_TEXTURE0);
 }
+
+void Mesh::DrawForPicking(Shader& shader, const glm::vec3& color)
+{
+	shader.use(); // активируем шейдер
+	shader.setVec3("objectColor", color); // передаем цвет меша для выбора
+
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}
+

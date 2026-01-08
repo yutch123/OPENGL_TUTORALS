@@ -68,6 +68,11 @@
 
 #include <Model.h>
 
+unsigned int pickingFBO = 0;
+unsigned int pickingTexture = 0;
+unsigned int depthRenderBuffer = 0;
+Shader* pickingShader = nullptr;
+
 // =======================
 // GLFW callbacks — объявления
 // =======================
@@ -198,6 +203,35 @@ int main()
 	// Включаем тест глубины, чтобы корректно отображались пересекающиеся объекты
 	glEnable(GL_DEPTH_TEST);
 
+	// Создаем FBO для Color Picking
+	glGenFramebuffers(1, &pickingFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, pickingFBO); 
+
+	// создаём текстуру для хранения цветов мешей
+	glGenTextures(1, &pickingTexture);
+	glBindTexture(GL_TEXTURE_2D, pickingTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pickingTexture, 0);
+
+	// текстура глубины
+	unsigned int depthRenderBuffer;
+	glGenRenderbuffers(1, &depthRenderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer);
+
+	// проверяем FBO
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Picking FBO is not complete!" << std::endl;
+
+	// отключаем FBO
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Создаем шейдер для Color Picking
+	pickingShader = new Shader("shaders/picking.vs", "shaders/picking.fs");
+
 	// Создаем шейдер и устанавливаем текстурный слот
 	Shader ourShader("shaders/3.3.shader.vs", "shaders/3.3.shader.fs");
 	ourShader.use();
@@ -239,6 +273,8 @@ int main()
 	while (!glfwWindowShouldClose(window)) 
 	{
 		processInput(window); // Обработка пользовательского ввода
+
+		// 
 
 		// Очистка цветового и глубинного буферов
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
@@ -284,12 +320,13 @@ int main()
 
 		if (loadedModel)
 		{
+			loadedModel->setRotationMatrix(arcball.getRotationMatrix());
 			loadedModel->Draw(ourShader);
 		}
 
 		// Рендеринг ImGui
 		editorUI.beginFrame();
-		editorUI.render();
+		editorUI.render(loadedModel);
 
 		glfwSwapBuffers(window); // Меняем цветовые буферы местами
 		glfwPollEvents(); // Обрабатываем события ввода
@@ -384,15 +421,49 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) // ф�
 	// (width, height) — размеры области отрисовки
 	//
 	// Все последующие вызовы рендера будут происходить в этой области.
-	glViewport(0, 0, width, height);
+	glViewport(0, 0, gWidth, gHeight);
 
 	// Сообщаем Arcball'у новые размеры экрана,
 	// чтобы корректно преобразовывать координаты курсора
 	// в нормализованное пространство вращения.
 	arcball.onResize(gWidth, gHeight);
+
+	// Пересоздаём Picking FBO
+
+	glDeleteTextures(1, &pickingTexture);
+	glDeleteRenderbuffers(1, &depthRenderBuffer);
+
+	glGenTextures(1, &pickingTexture);
+	glBindTexture(GL_TEXTURE_2D, pickingTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, gWidth, gHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glGenRenderbuffers(1, &depthRenderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, gWidth, gHeight);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, pickingFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pickingTexture, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Picking FBO is not complete after resize!" << std::endl;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int)
+// Вспомогательная функция для генерации уникального цвета по ID
+
+glm::vec3 IDtoColor(unsigned int meshID)
+{
+	unsigned int r = (meshID + 1) & 0xFF;
+	unsigned int g = ((meshID + 1) >> 8) & 0xFF;
+	unsigned int b = ((meshID + 1) >> 16) & 0xFF;
+	return glm::vec3(r / 255.0f, g / 255.0f, b / 255.0f);
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	// Текущие координаты курсора в момент нажатия/отпускания кнопки мыши.
 	// GLFW возвращает координаты в экранном пространстве окна.
@@ -409,6 +480,50 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int)
 	//  - сохраняет стартовую позицию,
 	//  - подготавливает данные для последующего onCursorMove().
 	arcball.onMouseButton(button, action, x, y);
+
+	// Обработка выбора меша при нажатии левой кнопки мыши
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		if (!loadedModel || !pickingShader) return;
+
+		glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)gWidth / gHeight, 0.1f, 100.0f);
+		glm::mat4 model = arcball.getRotationMatrix();
+		if (loadedModel) model = glm::scale(model, glm::vec3(loadedModel->getScale()));
+
+		// Привязываем FBO для Color Picking
+		glBindFramebuffer(GL_FRAMEBUFFER, pickingFBO);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		pickingShader->use();
+		pickingShader->setMat4("view", view);
+		pickingShader->setMat4("projection", projection);
+		pickingShader->setMat4("model", model);
+
+		for (size_t i = 0; i < loadedModel->getMeshCount(); ++i)
+		{
+			loadedModel->drawForPicking(static_cast<unsigned int>(i), *pickingShader);
+		}
+
+		// OpenGL считает координату Y от нижнего края, мышь — от верхнего
+		int mouseX = static_cast<int>(x);
+		int mouseY = gHeight - static_cast<int>(y);
+
+		unsigned char data[3]; // RGB
+		glReadPixels(mouseX, mouseY, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // отвязываем FBO
+
+		// Преобразуем RGB обратно в индекс меша
+		unsigned int pickedID = data[0] + (data[1] << 8) + (data[2] << 16) - 1;
+
+		// Проверяем, что индекс валидный
+		if (pickedID < loadedModel->getMeshCount())
+		{
+			loadedModel->selectMesh(pickedID);
+			std::cout << "Selected mesh: " << pickedID << std::endl;
+		}
+	}
 }
 
 void cursor_position_callback(GLFWwindow*, double x, double y)

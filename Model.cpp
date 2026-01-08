@@ -6,17 +6,41 @@
 
 void Model::Draw(Shader & shader)
 {
+    // Активируем шейдер
+    shader.use();
 
-    for (unsigned int i = 0; i < meshes.size(); i++)
+    // 2. Создаём матрицу модели
+    glm::mat4 modelMat = glm::mat4(1.0f);
+    modelMat = glm::translate(modelMat, position);
+    modelMat = modelMat * rotationMatrix;
+    modelMat = glm::scale(modelMat, glm::vec3(scale)); // применяем scale
+
+
+    // 3. Передаём матрицу шейдеру
+    shader.setMat4("model", modelMat);
+
+    for (size_t i = 0; i < meshes.size(); ++i)
     {
-        shader.use();
+        // Если выбран конкретный меш — рисуем только его
+        if (selectedMeshIndex >= 0 && static_cast<int>(i) != selectedMeshIndex)
+            continue;
 
-        // если у меша нет текстур, используем цвет
+        if (!meshVisible[i])
+            continue; // этот меш скрыт, пропускаем
+
+        // проверяем, есть ли цвет для текущего меша
+        if (i >= meshColors.size())
+            meshColors.push_back(glm::vec3(1.0f)); // белый по умолчанию
+
+        // если меш не имеет текстур, используем цвет
         if (meshes[i].textures.empty())
+        {
             shader.setVec3("objectColor", meshColors[i]);
+        }
 
         meshes[i].Draw(shader);
     }
+
 }
 
 void Model::loadModel(const std::string& path)
@@ -35,6 +59,29 @@ void Model::loadModel(const std::string& path)
 
     directory = path.substr(0, path.find_last_of("/\\"));
     processNode(scene->mRootNode, scene);
+
+    // Инициализируем массив видимости после загрузки всех мешей
+    meshVisible.resize(meshes.size(), true);
+}
+
+size_t Model::getMeshCount() const {
+    return meshes.size();
+}
+
+void Model::drawForPicking(unsigned int index, Shader& shader)
+{
+    if (index >= meshes.size()) return;
+
+    unsigned int id = index + 1;
+
+    glm::vec3 pickColor(
+        (id & 0xFF) / 255.0f,
+        ((id >> 8) & 0xFF) / 255.0f,
+        ((id >> 16) & 0xFF) / 255.0f
+    );
+
+    meshes[index].DrawForPicking(shader, pickColor);
+    shader.setVec3("pickingColor", pickColor);
 }
 
 unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false)
@@ -191,5 +238,20 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
     }
 
     return textures;
+}
+
+void Model::setRotationMatrix(const glm::mat4& rot)
+{
+    rotationMatrix = rot;
+}
+
+// Выбор меша
+
+void Model::selectMesh(int index)
+{
+    if (index < 0 || index >= (int)meshes.size())
+        selectedMeshIndex = -1; // сброс выбора
+    else
+        selectedMeshIndex = index;
 }
 
