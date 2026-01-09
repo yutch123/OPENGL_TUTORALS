@@ -97,12 +97,14 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\Huawei\Documents\Assimp\Assimp_install\include;C:\Users\Huawei\source\repos\OPENGL_2.0\include\core;C:\Users\Huawei\source\repos\OPENGL_2.0;C:\Users\Huawei\source\repos\OPENGL_2.0\include\render;C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\external\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc142-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\Huawei\Documents\Assimp\Assimp_install\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,6 +116,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\Huawei\Documents\Assimp\Assimp_install\include;C:\Users\Huawei\source\repos\OPENGL_2.0\include\core;C:\Users\Huawei\source\repos\OPENGL_2.0;C:\Users\Huawei\source\repos\OPENGL_2.0\include\render;C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\external\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -122,6 +125,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc142-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\Huawei\Documents\Assimp\Assimp_install\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -131,12 +135,14 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\Huawei\Documents\Assimp\Assimp_install\include;C:\Users\Huawei\source\repos\OPENGL_2.0\include\core;C:\Users\Huawei\source\repos\OPENGL_2.0;C:\Users\Huawei\source\repos\OPENGL_2.0\include\render;C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\external\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc142-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\Huawei\Documents\Assimp\Assimp_install\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -148,6 +154,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\Huawei\Documents\Assimp\Assimp_install\include;C:\Users\Huawei\source\repos\OPENGL_2.0\include\core;C:\Users\Huawei\source\repos\OPENGL_2.0;C:\Users\Huawei\source\repos\OPENGL_2.0\include\render;C:\Users\Huawei\source\repos\OPENGL_2.0\include\imgui;C:\Users\Huawei\source\repos\OPENGL_2.0\include;C:\Users\Huawei\source\repos\OPENGL_2.0\external\glm\g-truc-glm-a532f5b;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -156,6 +163,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc142-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\Huawei\Documents\Assimp\Assimp_install\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
