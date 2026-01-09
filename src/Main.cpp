@@ -193,7 +193,14 @@ int main()
 	(void)io;
 	ImGui::StyleColorsClassic();
 
-	// Инициализация бэкендов ImGui для GLFW и OpenGL
+	ImFontGlyphRangesBuilder builder;
+	builder.AddRanges(io.Fonts->GetGlyphRangesDefault());   // латиница и цифры
+	builder.AddRanges(io.Fonts->GetGlyphRangesCyrillic());  // кириллица
+	ImVector<ImWchar> ranges;
+	builder.BuildRanges(&ranges);
+
+	io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/arial.ttf", 14.0f, nullptr, ranges.Data);
+
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
@@ -268,6 +275,7 @@ int main()
 	}
 
 	stbi_image_free(data); // Освобождаем память изображения
+
 
 	// Основной цикл рендеринга
 	while (!glfwWindowShouldClose(window)) 

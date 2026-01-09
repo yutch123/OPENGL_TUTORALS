@@ -16,7 +16,33 @@ void EditorUI::render(Model* model)
 {
     drawModelWindow(); // новое окно загрузки модели
 
-    ImGui::SetNextWindowSize(ImVec2(200, 80), ImGuiCond_FirstUseEver); // ширина 200, высота 80
+    ImGuiIO& io = ImGui::GetIO();
+
+    if (model)
+    {
+        int selected = model->getSelectedMesh();
+        if (selected != -1) // если есть выбранный меш
+        {
+            std::string selectedInfo = model->getMeshInfo(selected);
+
+            ImGuiIO& io = ImGui::GetIO();
+            ImVec2 infoPos(io.DisplaySize.x - 300, 10); // справа, 300 пикселей от края
+            ImGui::SetNextWindowPos(infoPos, ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(280, 150)); // ширина окна
+
+            ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
+                ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoScrollbar |
+                ImGuiWindowFlags_NoCollapse;
+
+            ImGui::Begin("Mesh Info", nullptr, flags);
+
+            ImGui::TextWrapped("%s", selectedInfo.c_str());
+
+            ImGui::End();
+        }
+    }
 
     // Размер окна Debug
     ImVec2 windowSize(200, 80); // <-- объявляем сначала!

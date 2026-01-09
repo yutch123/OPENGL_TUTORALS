@@ -59,6 +59,19 @@ void Model::loadModel(const std::string& path)
 
     // Инициализируем массив видимости после загрузки всех мешей
     meshVisible.resize(meshes.size(), true);
+
+    // --- Добавляем произвольное описание для каждого меша ---
+    for (size_t i = 0; i < meshes.size(); ++i)
+    {
+        meshes[i].setInfo(u8"Слой " + std::to_string(i + 1) + u8" в моем произвольном эпителии");
+        // 1 слой произвольного эпителя (...)
+        meshes[i].setInfo(u8"Слой " + std::to_string(i + 1) + u8" в моем произвольном эпителии");
+        // 2 слой произвольного эпителя (...)
+        meshes[i].setInfo(u8"Слой " + std::to_string(i + 1) + u8" в моем произвольном эпителии");
+        // 3 слой произвольного эпителя (...)
+        meshes[i].setInfo(u8"Слой " + std::to_string(i + 1) + u8" в моем произвольном эпителии");
+        // 4 слой произвольного эпителя (...)
+    }
 }
 
 size_t Model::getMeshCount() const {
@@ -272,3 +285,10 @@ void Model::selectMesh(int index)
 
 }
 
+int Model::getSelectedMesh() const {
+    return selectedMeshIndex;
+}
+
+Mesh& Model::getMesh(int index) {
+    return meshes[index];
+}

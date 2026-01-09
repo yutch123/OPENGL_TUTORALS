@@ -31,6 +31,11 @@ class Mesh {
 		std::vector<unsigned int>	indices;
 		std::vector<Texture>		textures;
 
+		// Устанавливаем текст описания
+		void setInfo(const std::string& text) { info = text; }
+
+		std::string getInfo() const { return info; }
+
 		Mesh(
 			std::vector<Vertex> vertices,
 			std::vector<unsigned int> indices,
@@ -47,6 +52,8 @@ class Mesh {
 		unsigned int VAO = 0;
 		unsigned int VBO = 0;
 		unsigned int EBO = 0;
+
+		std::string info;
 
 		void setupMesh();
 };

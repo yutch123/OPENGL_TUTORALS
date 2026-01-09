@@ -18,14 +18,16 @@ class Model
 		}
 
 		void Draw(Shader& shader);
-
+		void selectMesh(int index);
 		void setRotationMatrix(const glm::mat4& rot);
+
+		int getSelectedMesh() const;
+
+		Mesh& getMesh(int index);
 
 		glm::vec3 getSize() const { return maxBounds - minBounds; }
 		void setScale(float s) { scale = s; }
 		float getScale() const { return scale; }  
-
-		void selectMesh(int index);
 
 		void drawForPicking(Shader& shader);
 
@@ -33,7 +35,10 @@ class Model
 
 		size_t getMeshCount() const;
 
+		std::string getMeshInfo(int index) const { return meshes[index].getInfo(); }
+
 	private:
+
 		// model data
 		bool pickingEnabled = true; // по умолчанию включено
 
