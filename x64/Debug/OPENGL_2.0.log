@@ -1,6 +1,8 @@
-﻿  EditorUI.cpp
-  Mesh.cpp
-  Model.cpp
-C:\Users\Huawei\source\repos\OPENGL_2.0\Model.cpp(77,32): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
-  Generating Code...
+﻿Arcball.obj : warning LNK4204: 'C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\vc142.pdb' is missing debugging information for referencing module; linking object as if no debug info
+imgui_widgets.obj : warning LNK4204: 'C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\vc142.pdb' is missing debugging information for referencing module; linking object as if no debug info
+imgui_tables.obj : warning LNK4204: 'C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\vc142.pdb' is missing debugging information for referencing module; linking object as if no debug info
+imgui_draw.obj : warning LNK4204: 'C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\vc142.pdb' is missing debugging information for referencing module; linking object as if no debug info
+imgui_impl_opengl3.obj : warning LNK4204: 'C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\vc142.pdb' is missing debugging information for referencing module; linking object as if no debug info
+imgui_impl_glfw.obj : warning LNK4204: 'C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\vc142.pdb' is missing debugging information for referencing module; linking object as if no debug info
+imgui.obj : warning LNK4204: 'C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\vc142.pdb' is missing debugging information for referencing module; linking object as if no debug info
   OPENGL_2.0.vcxproj -> C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\OPENGL_2.0.exe

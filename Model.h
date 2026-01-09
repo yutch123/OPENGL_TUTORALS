@@ -28,10 +28,15 @@ class Model
 		void selectMesh(int index);
 
 		void drawForPicking(Shader& shader);
+
+		void setPickingEnabled(bool enabled) { pickingEnabled = enabled; }
+
 		size_t getMeshCount() const;
 
 	private:
 		// model data
+		bool pickingEnabled = true; // по умолчанию включено
+
 		std::vector<Mesh> meshes;
 
 		int selectedMeshIndex = -1;

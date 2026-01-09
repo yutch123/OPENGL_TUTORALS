@@ -67,6 +67,9 @@ size_t Model::getMeshCount() const {
 
 void Model::drawForPicking(Shader& shader)
 {
+    if (!pickingEnabled)
+        return; // защита от случайного выбора: ничего не делаем
+
     shader.use();
 
     for (size_t i = 0; i < meshes.size(); ++i)
