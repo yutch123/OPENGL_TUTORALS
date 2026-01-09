@@ -1,1 +1,6 @@
-﻿  OPENGL_2.0.vcxproj -> C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\OPENGL_2.0.exe
+﻿  EditorUI.cpp
+  Mesh.cpp
+  Model.cpp
+C:\Users\Huawei\source\repos\OPENGL_2.0\Model.cpp(77,32): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
+  Generating Code...
+  OPENGL_2.0.vcxproj -> C:\Users\Huawei\source\repos\OPENGL_2.0\x64\Debug\OPENGL_2.0.exe

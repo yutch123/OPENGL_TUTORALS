@@ -99,3 +99,4 @@ void Mesh::DrawForPicking(Shader& shader, const glm::vec3& color)
 	glBindVertexArray(0);
 }
 
+

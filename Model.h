@@ -27,7 +27,7 @@ class Model
 
 		void selectMesh(int index);
 
-		void drawForPicking(unsigned int index, Shader& shader);
+		void drawForPicking(Shader& shader);
 		size_t getMeshCount() const;
 
 	private:

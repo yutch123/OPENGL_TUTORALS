@@ -500,10 +500,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		pickingShader->setMat4("projection", projection);
 		pickingShader->setMat4("model", model);
 
-		for (size_t i = 0; i < loadedModel->getMeshCount(); ++i)
-		{
-			loadedModel->drawForPicking(static_cast<unsigned int>(i), *pickingShader);
-		}
+		loadedModel->drawForPicking(*pickingShader);
 
 		// OpenGL считает координату Y от нижнего края, мышь — от верхнего
 		int mouseX = static_cast<int>(x);

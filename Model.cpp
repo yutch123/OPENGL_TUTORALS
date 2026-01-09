@@ -21,9 +21,6 @@ void Model::Draw(Shader & shader)
 
     for (size_t i = 0; i < meshes.size(); ++i)
     {
-        // ≈сли выбран конкретный меш Ч рисуем только его
-        if (selectedMeshIndex >= 0 && static_cast<int>(i) != selectedMeshIndex)
-            continue;
 
         if (!meshVisible[i])
             continue; // этот меш скрыт, пропускаем
@@ -68,20 +65,25 @@ size_t Model::getMeshCount() const {
     return meshes.size();
 }
 
-void Model::drawForPicking(unsigned int index, Shader& shader)
+void Model::drawForPicking(Shader& shader)
 {
-    if (index >= meshes.size()) return;
+    shader.use();
 
-    unsigned int id = index + 1;
+    for (size_t i = 0; i < meshes.size(); ++i)
+    {
+        if (!meshVisible[i])
+            continue; // пропускаем скрытые меши
 
-    glm::vec3 pickColor(
-        (id & 0xFF) / 255.0f,
-        ((id >> 8) & 0xFF) / 255.0f,
-        ((id >> 16) & 0xFF) / 255.0f
-    );
+        unsigned int id = i + 1; // ID дл€ picking
+        glm::vec3 pickColor(
+            (id & 0xFF) / 255.0f,
+            ((id >> 8) & 0xFF) / 255.0f,
+            ((id >> 16) & 0xFF) / 255.0f
+        );
 
-    meshes[index].DrawForPicking(shader, pickColor);
-    shader.setVec3("pickingColor", pickColor);
+        shader.setVec3("pickingColor", pickColor);
+        meshes[i].DrawForPicking(shader, pickColor);
+    }
 }
 
 unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false)
@@ -250,8 +252,20 @@ void Model::setRotationMatrix(const glm::mat4& rot)
 void Model::selectMesh(int index)
 {
     if (index < 0 || index >= (int)meshes.size())
+    {
         selectedMeshIndex = -1; // сброс выбора
-    else
-        selectedMeshIndex = index;
+
+        for (size_t i = 0; i < meshVisible.size(); ++i)
+            meshVisible[i] = true;
+
+        return;
+    }
+
+    // ¬ыбор конкретного меша
+    selectedMeshIndex = index;
+
+    for (size_t i = 0; i < meshVisible.size(); ++i)
+        meshVisible[i] = (i == index);
+
 }
 

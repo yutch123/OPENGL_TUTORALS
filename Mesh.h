@@ -40,6 +40,8 @@ class Mesh {
 		void Draw(Shader& shader);
 		void DrawForPicking(Shader& shader, const glm::vec3& color);
 
+		int pickingID;
+
 	private:
 		// render data
 		unsigned int VAO = 0;
